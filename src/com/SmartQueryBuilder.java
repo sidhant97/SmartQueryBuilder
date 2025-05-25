@@ -1,0 +1,36 @@
+package com;
+
+public class SmartQueryBuilder {
+    public static void main(String[] args) {
+        String sql = buildUnionStatement(true);
+        System.out.println("Oracle SQL with UNION:\n" + sql);
+    }
+
+    public static String buildUnionStatement(boolean fetchTop100) {
+        AdvanceSQLBuilder query1 = new AdvanceSQLBuilder("EMPLOYEE e")
+                .select("e.id", "id")
+                .select("e.name", "name")
+                .where("e.status = ?", "active")
+                .where("e.department = ?", "HR")
+                .orderBY("e.name ASC");
+
+        AdvanceSQLBuilder query2 = new AdvanceSQLBuilder("EMPLOYEE e")
+                .select("e.id", "id")
+                .select("e.name", "name")
+                .where("e.status = ?", "inactive")
+                .orderBY("e.name DESC");
+
+        // Union all example
+        query1.unionAll(query2);
+
+        OuterQueryBuilder outer = new OuterQueryBuilder(query1)
+                .selectFromInner("id", "RollNo")
+                .selectFromInner("name", "FirstName")
+                .selectStatic("'Sidhant Gupta'", "TeacherName")
+                .selectStatic("CASE WHEN inner_table.id IS NULL THEN 'NO ID' ELSE 'IS ID' END", "Status")
+                .orderBY("RollNo ASC")
+                .limitBasedOnCondition(fetchTop100, 100, 2000);
+
+        return outer.build();
+    }
+}
