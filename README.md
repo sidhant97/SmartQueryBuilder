@@ -80,44 +80,43 @@ public class SmartQueryBuilder {
 
     public static String buildUnionQuery(boolean fetchTop100) {
         AdvanceSQLBuilder activeEmployees = new AdvanceSQLBuilder("EMPLOYEE e")
-            .select("e.id", "id")
-            .select("e.name", "name")
-            .where("e.status = ?", "active")
-            .andWhere("e.department = ?", "IT")
-            .orWhereGroup("e.city = 'New York'", "e.city = 'Chicago'")
-            .orderBY("e.name ASC");
+                .select("e.id", "id")
+                .select("e.name", "name")
+                .andWhere("e.department = ?", "IT")
+                .orWhereGroup("e.city = 'New York'", "e.city = 'Chicago'")
+                .orderBY("e.name ASC");
 
         AdvanceSQLBuilder inactiveEmployees = new AdvanceSQLBuilder("EMPLOYEE e")
-            .select("e.id", "id")
-            .select("e.name", "name")
-            .where("e.status = ?", "inactive")
-            .orderBY("e.name DESC");
+                .select("e.id", "id")
+                .select("e.name", "name")
+                .where("e.status = ?", "inactive")
+                .orderBY("e.name DESC");
 
         activeEmployees.unionAll(inactiveEmployees);
 
         OuterQueryBuilder outerQuery = new OuterQueryBuilder(activeEmployees)
-            .selectFromInner("id", "RollNo")
-            .selectFromInner("name", "FirstName")
-            .selectStatic("'Sidhant Gupta'", "TeacherName")
-            .selectStatic("CASE WHEN inner_table.id IS NULL THEN 'NO ID' ELSE 'IS ID' END", "Status")
-            .orderBY("RollNo ASC")
-            .limitBasedOnCondition(fetchTop100, 100, 2000);
+                .selectFromInner("id", "RollNo")
+                .selectFromInner("name", "FirstName")
+                .selectStatic("'Sidhant Gupta'", "TeacherName")
+                .selectStatic("CASE WHEN inner_table.id IS NULL THEN 'NO ID' ELSE 'IS ID' END", "Status")
+                .orderBY("RollNo ASC")
+                .limitBasedOnCondition(fetchTop100, 100, 2000);
 
         return outerQuery.build();
     }
 
     public static List<Object> getParametersForQuery(boolean fetchTop100) {
         AdvanceSQLBuilder activeEmployees = new AdvanceSQLBuilder("EMPLOYEE e")
-            .where("e.status = ?", "active")
-            .where("e.department = ?", "HR");
+                .where("e.status = ?", "active")
+                .where("e.department = ?", "HR");
 
         AdvanceSQLBuilder inactiveEmployees = new AdvanceSQLBuilder("EMPLOYEE e")
-            .where("e.status = ?", "inactive");
+                .where("e.status = ?", "inactive");
 
         activeEmployees.unionAll(inactiveEmployees);
 
         OuterQueryBuilder outerQuery = new OuterQueryBuilder(activeEmployees)
-            .limitBasedOnCondition(fetchTop100, 100, 2000);
+                .limitBasedOnCondition(fetchTop100, 100, 2000);
 
         return outerQuery.getParameters();
     }
@@ -133,7 +132,8 @@ SELECT
   'Sidhant Gupta' AS TeacherName, 
   CASE WHEN inner_table.id IS NULL THEN 'NO ID' ELSE 'IS ID' END AS Status
 FROM (
-  SELECT e.id AS id, e.name AS name FROM EMPLOYEE e WHERE e.status = ? AND e.department = ? ORDER BY e.name ASC
+  SELECT e.id AS id, e.name AS name FROM EMPLOYEE e WHERE (e.department = ?) AND (e.city = 'New York' OR e.city = 'Chicago')
+  ORDER BY e.name ASC
   UNION ALL
   SELECT e.id AS id, e.name AS name FROM EMPLOYEE e WHERE e.status = ? ORDER BY e.name DESC
 ) inner_table
@@ -168,7 +168,8 @@ OFFSET 0 ROWS FETCH NEXT 100 ROWS ONLY
     * `OracleSQLBuilder` (current builder)
     * `MySQLSQLBuilder` (with MySQL-specific pagination syntax)
     * `PostgresSQLBuilder` and so on
-* This design enables runtime selection of builder based on the database type, enhancing reusability and maintainability.
+* This design enables runtime selection of builder based on the database type, enhancing reusability and
+  maintainability.
 
 ### 2. Extended SQL Features
 

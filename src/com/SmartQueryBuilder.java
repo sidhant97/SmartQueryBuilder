@@ -7,22 +7,22 @@ public class SmartQueryBuilder {
     }
 
     public static String buildUnionStatement(boolean fetchTop100) {
-                    AdvanceSQLBuilder query1 = new AdvanceSQLBuilder("EMPLOYEE e")
-                    .select("e.id", "EmployeeId")
-                    .select("e.name", "Name")
-                    .selectCase("Status",
-                            "e.status = 'A'", "Active",
-                            "e.status = 'I'", "Inactive",
-                            "Unknown")
-                    .selectNestedCase("SeniorityLevel",
-                            "e.experience > 5", "e.role = 'Manager'", "Senior Manager", "Experienced")
-                    .andWhere("e.department = ?", "IT")
-                    .orWhereGroup("e.city = 'New York'", "e.city = 'Chicago'")
-                    .orderBY("e.name ASC")
-                    .limit(10);
+        AdvanceSQLBuilder query1 = new AdvanceSQLBuilder("EMPLOYEE e")
+                .select("e.id", "EmployeeId")
+                .select("e.name", "Name")
+                .selectCase("Status",
+                        "e.status = 'A'", "Active",
+                        "e.status = 'I'", "Inactive",
+                        "Unknown")
+                .selectNestedCase("SeniorityLevel",
+                        "e.experience > 5", "e.role = 'Manager'", "Senior Manager", "Experienced")
+                .andWhere("e.department = ?", "IT")
+                .orWhereGroup("e.city = 'New York'", "e.city = 'Chicago'")
+                .orderBY("e.name ASC")
+                .limit(10);
 
 
-            AdvanceSQLBuilder query2 = new AdvanceSQLBuilder("EMPLOYEE e")
+        AdvanceSQLBuilder query2 = new AdvanceSQLBuilder("EMPLOYEE e")
                 .select("e.id", "id")
                 .select("e.name", "name")
                 .where("e.status = ?", "inactive")

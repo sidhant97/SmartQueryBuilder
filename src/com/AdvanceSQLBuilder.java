@@ -106,6 +106,7 @@ public class AdvanceSQLBuilder {
         this.useUnionAll = false;
         return this;
     }
+
     public AdvanceSQLBuilder andWhere(String condition, Object... params) {
         if (condition != null && !condition.trim().isEmpty()) {
             conditionGroups.add("(" + condition + ")");
@@ -128,6 +129,7 @@ public class AdvanceSQLBuilder {
         }
         return this;
     }
+
     public AdvanceSQLBuilder unionAll(AdvanceSQLBuilder other) {
         if (this.unionQueries.isEmpty()) {
             this.unionQueries.add(this.buildSimple());
@@ -158,8 +160,6 @@ public class AdvanceSQLBuilder {
         }
         return sql.toString();
     }
-
-
 
 
     public String build() {
