@@ -150,7 +150,9 @@ public class AdvanceSQLBuilder {
         if (!whereClauses.isEmpty()) {
             sql.append(" WHERE ").append(String.join(" AND ", whereClauses));
         }
-
+        if (!conditionGroups.isEmpty()) {
+            sql.append(" WHERE ").append(String.join(" AND ", conditionGroups));
+        }
         if (orderBy != null) {
             sql.append(" ORDER BY ").append(orderBy);
         }

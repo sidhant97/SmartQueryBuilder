@@ -7,7 +7,7 @@ public class SmartQueryBuilder {
     }
 
     public static String buildUnionStatement(boolean fetchTop100) {
-                    AdvanceSQLBuilder builder = new AdvanceSQLBuilder("EMPLOYEE e")
+                    AdvanceSQLBuilder query1 = new AdvanceSQLBuilder("EMPLOYEE e")
                     .select("e.id", "EmployeeId")
                     .select("e.name", "Name")
                     .selectCase("Status",
@@ -18,7 +18,7 @@ public class SmartQueryBuilder {
                             "e.experience > 5", "e.role = 'Manager'", "Senior Manager", "Experienced")
                     .andWhere("e.department = ?", "IT")
                     .orWhereGroup("e.city = 'New York'", "e.city = 'Chicago'")
-                    .orderBY("e.name")
+                    .orderBY("e.name ASC")
                     .limit(10);
 
 

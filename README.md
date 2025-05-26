@@ -83,7 +83,8 @@ public class SmartQueryBuilder {
             .select("e.id", "id")
             .select("e.name", "name")
             .where("e.status = ?", "active")
-            .where("e.department = ?", "HR")
+            .andWhere("e.department = ?", "IT")
+            .orWhereGroup("e.city = 'New York'", "e.city = 'Chicago'")
             .orderBY("e.name ASC");
 
         AdvanceSQLBuilder inactiveEmployees = new AdvanceSQLBuilder("EMPLOYEE e")
