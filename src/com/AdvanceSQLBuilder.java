@@ -10,6 +10,7 @@ public class AdvanceSQLBuilder {
     private final List<String> selectColumns = new ArrayList<>();
     private final List<String> joins = new ArrayList<>();
     private final List<String> whereClauses = new ArrayList<>();
+    private final List<String> conditionGroups = new ArrayList<>();
     private final List<Object> parameters = new ArrayList<>();
     private String orderBy;
     private Integer limit;
@@ -30,6 +31,29 @@ public class AdvanceSQLBuilder {
         } else {
             selectColumns.add(columnOrExpr);
         }
+        return this;
+    }
+
+    public AdvanceSQLBuilder selectCase(String alias, String... conditionsAndResults) {
+        StringBuilder caseExpr = new StringBuilder("CASE ");
+        for (int i = 0; i < conditionsAndResults.length - 1; i += 2) {
+            caseExpr.append("WHEN ").append(conditionsAndResults[i])
+                    .append(" THEN '").append(conditionsAndResults[i + 1]).append("' ");
+        }
+        if (conditionsAndResults.length % 2 == 1) {
+            caseExpr.append("ELSE '").append(conditionsAndResults[conditionsAndResults.length - 1]).append("' ");
+        }
+        caseExpr.append("END");
+        selectColumns.add(caseExpr + (alias != null ? " AS " + alias : ""));
+        return this;
+    }
+
+    public AdvanceSQLBuilder selectNestedCase(String alias, String outerCondition, String innerCondition, String innerResult, String elseResult) {
+        String caseExpr = String.format(
+                "CASE WHEN %s THEN (CASE WHEN %s THEN '%s' ELSE '%s' END) ELSE '%s' END",
+                outerCondition, innerCondition, innerResult, elseResult, elseResult
+        );
+        selectColumns.add(caseExpr + (alias != null ? " AS " + alias : ""));
         return this;
     }
 
@@ -82,7 +106,28 @@ public class AdvanceSQLBuilder {
         this.useUnionAll = false;
         return this;
     }
+    public AdvanceSQLBuilder andWhere(String condition, Object... params) {
+        if (condition != null && !condition.trim().isEmpty()) {
+            conditionGroups.add("(" + condition + ")");
+            if (params != null) {
+                parameters.addAll(Arrays.asList(params));
+            }
+        }
+        return this;
+    }
 
+    public AdvanceSQLBuilder orWhereGroup(String... conditions) {
+        List<String> group = new ArrayList<>();
+        for (String condition : conditions) {
+            if (condition != null && !condition.trim().isEmpty()) {
+                group.add(condition);
+            }
+        }
+        if (!group.isEmpty()) {
+            conditionGroups.add("(" + String.join(" OR ", group) + ")");
+        }
+        return this;
+    }
     public AdvanceSQLBuilder unionAll(AdvanceSQLBuilder other) {
         if (this.unionQueries.isEmpty()) {
             this.unionQueries.add(this.buildSimple());
@@ -105,11 +150,15 @@ public class AdvanceSQLBuilder {
         if (!whereClauses.isEmpty()) {
             sql.append(" WHERE ").append(String.join(" AND ", whereClauses));
         }
+
         if (orderBy != null) {
             sql.append(" ORDER BY ").append(orderBy);
         }
         return sql.toString();
     }
+
+
+
 
     public String build() {
         // If unionQueries are present, build union SQL
@@ -128,6 +177,9 @@ public class AdvanceSQLBuilder {
         }
         if (!whereClauses.isEmpty()) {
             sql.append(" WHERE ").append(String.join(" AND ", whereClauses));
+        }
+        if (!conditionGroups.isEmpty()) {
+            sql.append(" WHERE ").append(String.join(" AND ", conditionGroups));
         }
         if (orderBy != null) {
             sql.append(" ORDER BY ").append(orderBy);
